@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Structural Reset Planner</title>
+  <meta name="theme-color" content="#f8f4ee" />
+  <style>
+    :root{
+      --bg:#f8f4ee;
+      --ink:#5c5b58;
+      --card:#ffffff;
+      --sage:#b6c4aa;
+      --gold:#d9c28d;
+      --muted:#8e8c86;
+      --line:rgba(0,0,0,.12);
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(8px);
+      background: color-mix(in srgb, var(--bg) 85%, white 15%);
+      border-bottom:1px solid var(--line);
+    }
+    .wrap{max-width:980px; margin:0 auto; padding:18px 16px;}
+    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+    .brand h1{margin:0; font-size:18px; letter-spacing:.2px;}
+    .brand p{margin:4px 0 0; font-size:12px; opacity:.8}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap}
+    .tab{
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:800;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .tab[aria-selected="true"]{
+      border-color: color-mix(in srgb, var(--gold) 60%, var(--line) 40%);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent 70%);
+    }
+    .actions{display:flex; gap:8px; flex-wrap:wrap}
+    .btn{
+      border:0; border-radius:12px; padding:10px 12px;
+      font-weight:900; cursor:pointer; background:var(--gold); color:#2a2a2a;
+    }
+    .btn.secondary{background:var(--sage)}
+    .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink); font-weight:800;}
+    main .wrap{padding-top:14px; padding-bottom:60px;}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .grid{display:grid; gap:12px}
+    @media(min-width:820px){ .grid.two{grid-template-columns:1fr 1fr;} }
+    .section-title{display:flex; align-items:flex-end; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 6px;}
+    .section-title h2{margin:0; font-size:18px}
+    .quote{
+      margin:0 0 12px; padding:12px 14px;
+      border-left:5px solid var(--sage);
+      background: color-mix(in srgb, var(--sage) 12%, white 88%);
+      border-radius:12px; font-style:italic;
+    }
+    label{display:block; font-size:12px; font-weight:900; letter-spacing:.2px; margin:10px 0 6px;}
+    input[type="text"], textarea, select{
+      width:100%; border:1px solid var(--line); border-radius:12px;
+      padding:10px 12px; font-size:14px; background:white; color:var(--ink);
+    }
+    textarea{min-height:96px; resize:vertical;}
+    .checkrow{display:flex; gap:10px; flex-wrap:wrap}
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 10px;
+      background:white;
+      font-weight:800;
+      font-size:13px;
+    }
+    .tiny{font-size:12px; opacity:.78; line-height:1.4}
+    .hidden{display:none !important}
+    .footer-note{margin-top:12px; font-size:12px; opacity:.8}
+
+    @media print{
+      header, .no-print{display:none !important}
+      body{background:white}
+      .card{box-shadow:none; border:1px solid #ddd}
+      .wrap{max-width:100%; padding:0}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap topbar">
+    <div class="brand">
+      <h1>Structural Reset Planner</h1>
+      <p id="todayLabel">Tap → plan → reset. Saved on this device.</p>
+    </div>
+
+    <div class="tabs no-print" role="tablist" aria-label="Planner Views">
+      <button class="tab" role="tab" aria-selected="true" data-view="daily">Daily</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="weekly">Weekly</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="monthly">Monthly</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="stillness">Stillness</button>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn ghost" id="exportBtn">Export</button>
+      <button class="btn ghost" id="importBtn">Import</button>
+      <button class="btn secondary" id="resetBtn">Clear View</button>
+      <button class="btn" onclick="window.print()">Print</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- DAILY -->
+    <section id="view-daily" class="card">
+      <div class="section-title">
+        <h2>Daily Structural Reset</h2>
+        <div class="tiny" id="dailyDate"></div>
+      </div>
+      <p class="quote">“Rhythm doesn’t demand more — it removes what doesn’t belong.”</p>
+
+      <div class="grid two">
+        <div>
+          <h3 style="margin:0 0 6px;">AM Rhythm</h3>
+          <div class="checkrow">
+            <label class="chip"><input type="checkbox" data-k="daily.am.calm" /> Calm Start (slow breath)</label>
+            <label class="chip"><input type="checkbox" data-k="daily.am.clear" /> Clear one thing</label>
+            <label class="chip"><input type="checkbox" data-k="daily.am.root" /> Root into your Why</label>
+            <label class="chip"><input type="checkbox" data-k="daily.am.align" /> Align with your One Thing</label>
+          </div>
+
+          <label>The One Thing That Actually Matters</label>
+          <input type="text" data-k="daily.oneThing" placeholder="What single action makes everything else lighter?" />
+
+          <label>Micro-Boundary of the Day</label>
+          <select data-k="daily.boundary">
+            <option value="">Choose one…</option>
+            <option>I will not respond instantly</option>
+            <option>I will finish before I switch</option>
+            <option>I allow nothing in the first 15 minutes</option>
+            <option>I will protect my focus window</option>
+            <option>I will not explain myself to chaos</option>
+          </select>
+
+          <label>Custom Boundary (optional)</label>
+          <input type="text" data-k="daily.boundaryCustom" placeholder="I choose…" />
+        </div>
+
+        <div>
+          <h3 style="margin:0 0 6px;">Energy Check-In</h3>
+          <div class="checkrow">
+            <label class="chip"><input type="radio" name="energy" data-k="daily.energy" value="Calm" /> Calm</label>
+            <label class="chip"><input type="radio" name="energy" data-k="daily.energy" value="Focused" /> Focused</label>
+            <label class="chip"><input type="radio" name="energy" data-k="daily.energy" value="Drained" /> Drained</label>
+            <label class="chip"><input type="radio" name="energy" data-k="daily.energy" value="Off-Balance" /> Off-Balance</label>
+          </div>
+          <p class="tiny" style="margin:10px 0 0;">
+            Your energy tells the truth. Adjust rhythm, not pressure.
+          </p>
+
+          <div style="margin-top:14px;">
+            <h3 style="margin:0 0 6px;">PM Rhythm</h3>
+            <div class="checkrow">
+              <label class="chip"><input type="checkbox" data-k="daily.pm.release" /> Release the day</label>
+              <label class="chip"><input type="checkbox" data-k="daily.pm.setOneThing" /> Set tomorrow’s One Thing</label>
+              <label class="chip"><input type="checkbox" data-k="daily.pm.center" /> Return to center</label>
+              <label class="chip"><input type="checkbox" data-k="daily.pm.close" /> Small closure ritual</label>
+            </div>
+          </div>
+
+          <label>Evidence of Movement</label>
+          <textarea data-k="daily.evidence" placeholder="Tiny wins only. Let the day prove itself."></textarea>
+        </div>
+      </div>
+
+      <div class="footer-note">Held and Unbreakable — in motion.</div>
+    </section>
+
+    <!-- WEEKLY -->
+    <section id="view-weekly" class="card hidden">
+      <div class="section-title">
+        <h2>Weekly Reset & Rhythm Map</h2>
+        <div class="tiny">Maintenance is mastery in motion.</div>
+      </div>
+      <p class="quote">“Sustain what supports you. Release what requires you to vanish.”</p>
+
+      <div class="grid two">
+        <div>
+          <label>What needs clearing?</label>
+          <textarea data-k="weekly.clearing"></textarea>
+          <label>What needs rooting?</label>
+          <textarea data-k="weekly.rooting"></textarea>
+        </div>
+        <div>
+          <label>What needs aligning?</label>
+          <textarea data-k="weekly.aligning"></textarea>
+          <label>What needs releasing?</label>
+          <textarea data-k="weekly.releasing"></textarea>
+        </div>
+      </div>
+
+      <div class="grid two" style="margin-top:8px;">
+        <div>
+          <label>Weekly AM Anchor</label>
+          <input type="text" data-k="weekly.amAnchor" />
+        </div>
+        <div>
+          <label>Weekly PM Anchor</label>
+          <input type="text" data-k="weekly.pmAnchor" />
+        </div>
+      </div>
+
+      <label>Evidence of Movement (3 maintained things)</label>
+      <textarea data-k="weekly.evidence" placeholder="1) …&#10;2) …&#10;3) …"></textarea>
+    </section>
+
+    <!-- MONTHLY -->
+    <section id="view-monthly" class="card hidden">
+      <div class="section-title">
+        <h2>Monthly Structural Tune-Up</h2>
+        <div class="tiny">You don’t begin again — you begin deeper.</div>
+      </div>
+      <p class="quote">“Structure is a living ally.”</p>
+
+      <label>What felt heavy this month?</label>
+      <textarea data-k="monthly.heavy"></textarea>
+
+      <label>What felt effortless?</label>
+      <textarea data-k="monthly.effortless"></textarea>
+
+      <label>What needs restructuring?</label>
+      <textarea data-k="monthly.restructure"></textarea>
+
+      <label>Where did tension show up?</label>
+      <textarea data-k="monthly.tension"></textarea>
+
+      <label>What did I maintain well?</label>
+      <textarea data-k="monthly.maintained"></textarea>
+
+      <label>Reset Objective for the month ahead (one sentence)</label>
+      <input type="text" data-k="monthly.objective" placeholder="Direction, not pressure." />
+    </section>
+
+    <!-- STILLNESS -->
+    <section id="view-stillness" class="card hidden">
+      <div class="section-title">
+        <h2>Stillness Space</h2>
+        <div class="tiny">Stillness is signal.</div>
+      </div>
+      <p class="quote">“Go slow enough to notice what’s holding you.”</p>
+
+      <label>What rhythm showed up this week?</label>
+      <textarea data-k="stillness.rhythm"></textarea>
+
+      <label>What tried to pull me off-center?</label>
+      <textarea data-k="stillness.pull"></textarea>
+
+      <label>What returned to me naturally?</label>
+      <textarea data-k="stillness.returned"></textarea>
+
+      <label>What structure held me the most?</label>
+      <textarea data-k="stillness.held"></textarea>
+
+      <label>A single sentence forward</label>
+      <input type="text" data-k="stillness.forward" placeholder="Not a plan — a position." />
+    </section>
+
+  </div>
+</main>
+
+<script>
+  // ------- Utilities -------
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const STORAGE_KEY = "srp.v1";
+  const defaultState = { activeView: "daily", fields: {} };
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return structuredClone(defaultState);
+      const parsed = JSON.parse(raw);
+      return {
+        activeView: parsed.activeView || "daily",
+        fields: parsed.fields || {}
+      };
+    }catch{
+      return structuredClone(defaultState);
+    }
+  }
+
+  function saveState(state){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function setField(state, key, value){
+    state.fields[key] = value;
+    saveState(state);
+  }
+
+  function getField(state, key){
+    return state.fields[key] ?? "";
+  }
+
+  function todayISO(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  // ------- View Switching -------
+  function showView(state, view){
+    const views = ["daily","weekly","monthly","stillness"];
+    for(const v of views){
+      $("#view-" + v).classList.toggle("hidden", v !== view);
+      const tab = $(`.tab[data-view="${v}"]`);
+      tab.setAttribute("aria-selected", v === view ? "true" : "false");
+    }
+    state.activeView = view;
+    saveState(state);
+  }
+
+  // ------- Bind Inputs -------
+  function bindAll(state){
+    // text/select/textarea
+    $$("[data-k]").forEach(el => {
+      const key = el.getAttribute("data-k");
+
+      // Radio group handling
+      if(el.type === "radio"){
+        const stored = getField(state, key);
+        el.checked = (stored === el.value);
+        el.addEventListener("change", () => {
+          if(el.checked) setField(state, key, el.value);
+        });
+        return;
+      }
+
+      // Checkbox
+      if(el.type === "checkbox"){
+        const stored = getField(state, key);
+        el.checked = stored === "true";
+        el.addEventListener("change", () => setField(state, key, String(el.checked)));
+        return;
+      }
+
+      // Everything else
+      el.value = getField(state, key);
+      el.addEventListener("input", () => setField(state, key, el.value));
+    });
+  }
+
+  // ------- Export / Import -------
+  function download(filename, text){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], {type:"application/json"}));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ------- Clear View -------
+  function clearView(state, view){
+    const prefix = view + ".";
+    Object.keys(state.fields).forEach(k => {
+      if(k.startsWith(prefix)){
+        delete state.fields[k];
+      }
+    });
+    saveState(state);
+    // reset UI values
+    bindAll(state);
+  }
+
+  // ------- Init -------
+  const state = loadState();
+  $("#dailyDate").textContent = "Date: " + todayISO();
+  $("#todayLabel").textContent = "Tap → plan → reset. Saved on this device. (" + todayISO() + ")";
+
+  // Tabs
+  $$(".tab").forEach(btn => btn.addEventListener("click", () => showView(state, btn.dataset.view)));
+
+  // Actions
+  $("#resetBtn").addEventListener("click", () => clearView(state, state.activeView));
+
+  $("#exportBtn").addEventListener("click", () => {
+    download(`structural-reset-planner-backup-${todayISO()}.json`, JSON.stringify(state, null, 2));
+  });
+
+  $("#importBtn").addEventListener("click", async () => {
+    const picker = document.createElement("input");
+    picker.type = "file";
+    picker.accept = "application/json";
+    picker.onchange = async () => {
+      const file = picker.files?.[0];
+      if(!file) return;
+      const text = await file.text();
+      try{
+        const imported = JSON.parse(text);
+        const merged = {
+          activeView: imported.activeView || "daily",
+          fields: imported.fields || {}
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+        location.reload();
+      }catch(e){
+        alert("Invalid backup file.");
+      }
+    };
+    picker.click();
+  });
+
+  bindAll(state);
+  showView(state, state.activeView);
+</script>
+</body>
+</html>
