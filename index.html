@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Sanctuary Map</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --panel:#11151b;
+      --ink:#e9eef5;
+      --muted:#a9b4c3;
+      --hair:rgba(233,238,245,.12);
+      --accent:#c7d2fe; /* soft authority */
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--ink);
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(199,210,254,.10), transparent 60%),
+                  radial-gradient(900px 500px at 80% 10%, rgba(167,243,208,.08), transparent 55%),
+                  var(--bg);
+      line-height:1.45;
+    }
+    a{color:var(--accent); text-decoration:none}
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 16px 64px;
+    }
+    .hero{
+      background: linear-gradient(180deg, rgba(17,21,27,.92), rgba(17,21,27,.75));
+      border: 1px solid var(--hair);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 22px 22px 18px;
+    }
+    .quiet{
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing:.02em;
+      margin: 0 0 10px;
+      font-style: italic;
+    }
+    h1{
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.02em;
+    }
+    .sub{
+      margin: 8px 0 10px;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .explain{
+      margin: 10px 0 0;
+      color: var(--muted);
+      max-width: 62ch;
+    }
+    .divider{
+      height:1px;
+      background: var(--hair);
+      margin: 18px 0 0;
+    }
+    .roomsHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin: 22px 0 10px;
+      gap:12px;
+    }
+    .roomsHead h2{
+      margin:0;
+      font-size: 15px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .pill{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--hair);
+      padding: 6px 10px;
+      border-radius: 999px;
+      user-select:none;
+    }
+
+    details.room{
+      background: rgba(17,21,27,.78);
+      border: 1px solid var(--hair);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+      padding: 14px 14px 16px;
+      margin: 10px 0;
+      overflow:hidden;
+    }
+    summary{
+      list-style:none;
+      cursor:pointer;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    summary::-webkit-details-marker{display:none}
+    .titleBlock{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .roomTitle{
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      font-size: 16px;
+      margin:0;
+    }
+    .roomOneLine{
+      margin:0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .chev{
+      margin-top:2px;
+      font-family: var(--mono);
+      color: var(--muted);
+      flex: 0 0 auto;
+    }
+
+    .inside{
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--hair);
+      display:grid;
+      gap: 14px;
+    }
+    .block{
+      background: rgba(11,13,16,.42);
+      border: 1px solid rgba(233,238,245,.10);
+      border-radius: 14px;
+      padding: 12px 12px;
+    }
+    .block h3{
+      margin:0 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    ul.ops{
+      margin:0;
+      padding-left: 18px;
+      color: var(--ink);
+    }
+    ul.ops li{
+      margin: 6px 0;
+    }
+    .label{
+      color: var(--accent);
+      font-weight: 700;
+      font-family: var(--mono);
+      font-size: 12px;
+      margin-right:6px;
+    }
+    textarea{
+      width:100%;
+      min-height: 92px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 1px solid rgba(233,238,245,.14);
+      background: rgba(0,0,0,.25);
+      color: var(--ink);
+      padding: 10px 10px;
+      font-family: var(--sans);
+      line-height: 1.4;
+      outline: none;
+    }
+    textarea:focus{
+      border-color: rgba(199,210,254,.45);
+      box-shadow: 0 0 0 4px rgba(199,210,254,.10);
+    }
+    .signal{
+      color: var(--muted);
+      font-style: italic;
+      margin:0;
+    }
+    .footer{
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align:center;
+      opacity:.9;
+    }
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    button{
+      appearance:none;
+      border: 1px solid var(--hair);
+      background: rgba(17,21,27,.70);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor:pointer;
+    }
+    button:hover{ border-color: rgba(199,210,254,.35); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <p class="quiet">Quiet Space — pause for one breath before continuing.</p>
+      <h1>The Sanctuary Map</h1>
+      <div class="sub">A structural return system for everyday life.</div>
+      <p class="explain">
+        This is not organization. This is not productivity.<br/>
+        It’s a map for returning to center when friction appears.
+      </p>
+      <div class="divider"></div>
+
+      <div class="roomsHead">
+        <h2>Rooms</h2>
+        <div class="pill">Tap a room • Do one thing • Return</div>
+      </div>
+
+      <!-- ROOMS -->
+      <details class="room" data-room="bathroom">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Bathroom — Ritual</div>
+            <p class="roomOneLine">Reset body-state. Neutral comes before decisions.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Clear one surface or wipe the sink for 30 seconds.</li>
+              <li><span class="label">BOUNDARY</span>No multitasking while standing here.</li>
+              <li><span class="label">CLOSE</span>Turn off the light intentionally and leave.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="livingroom">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Living Room — Peace</div>
+            <p class="roomOneLine">Reduce ambient friction. Restore calm.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Reset cushions/throw + clear one item.</li>
+              <li><span class="label">BOUNDARY</span>One media source at a time.</li>
+              <li><span class="label">CLOSE</span>End with silence for 60 seconds.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="kitchen">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Kitchen — Energy</div>
+            <p class="roomOneLine">Simplify inputs. Stabilize flow.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Clear the main prep area.</li>
+              <li><span class="label">BOUNDARY</span>Put one “default” food choice back in place.</li>
+              <li><span class="label">CLOSE</span>Set tomorrow’s first drink/meal anchor.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="closet">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Closet — Identity</div>
+            <p class="roomOneLine">Remove noise. Reinforce alignment.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Rehang/straighten 5 items.</li>
+              <li><span class="label">BOUNDARY</span>One “no guilt” discard rule (if it irritates you, it goes).</li>
+              <li><span class="label">CLOSE</span>Put tomorrow’s outfit anchor in place.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="desk">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Desk — Focus</div>
+            <p class="roomOneLine">Contain attention. Protect momentum.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Clear to one active project.</li>
+              <li><span class="label">BOUNDARY</span>No open tabs not serving the current task.</li>
+              <li><span class="label">CLOSE</span>Write the next action before you stand up.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="inbox">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Inbox — Emotional Backlog</div>
+            <p class="roomOneLine">Process residue. Close loops.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Delete/archive 10 items.</li>
+              <li><span class="label">BOUNDARY</span>No responding while emotionally hot.</li>
+              <li><span class="label">CLOSE</span>Flag only the next action; stop there.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="phone">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Phone — Presence</div>
+            <p class="roomOneLine">Interrupt reflex. Reclaim intent.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Clear one distracting app from the home screen.</li>
+              <li><span class="label">BOUNDARY</span>No “open phone without purpose.”</li>
+              <li><span class="label">CLOSE</span>Put phone face down when you’re done.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="room" data-room="bedroom">
+        <summary>
+          <div class="titleBlock">
+            <div class="roomTitle">Bedroom — Rest</div>
+            <p class="roomOneLine">Signal completion. Downshift cleanly.</p>
+          </div>
+          <div class="chev">▾</div>
+        </summary>
+        <div class="inside">
+          <div class="block">
+            <h3>Room Ops</h3>
+            <ul class="ops">
+              <li><span class="label">RESET</span>Clear one bedside surface.</li>
+              <li><span class="label">BOUNDARY</span>No inputs 10 minutes before sleep.</li>
+              <li><span class="label">CLOSE</span>Lights out with one sentence of closure.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>Room Notes</h3>
+            <textarea placeholder="Date-stamped notes… (saved automatically on this device)"></textarea>
+          </div>
+          <div class="block">
+            <h3>Structural Signal</h3>
+            <p class="signal">“If this keeps showing up here, it’s structural — not personal.”</p>
+          </div>
+        </div>
+      </details>
+
+      <div class="btnRow">
+        <button id="collapseAll" type="button">Collapse All</button>
+        <button id="expandFirst" type="button">Open Bathroom</button>
+        <button id="wipeNotes" type="button">Clear Notes (This Device)</button>
+      </div>
+
+      <div class="footer">
+        Notes save locally on this device/browser only. To make notes portable, export or host with a real backend later.
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Local save per room textarea
+    const rooms = document.querySelectorAll('details.room');
+    const KEY_PREFIX = 'sanctuary_map_notes__';
+
+    rooms.forEach(room => {
+      const roomId = room.getAttribute('data-room');
+      const ta = room.querySelector('textarea');
+      const key = KEY_PREFIX + roomId;
+
+      // Load
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved !== null) ta.value = saved;
+      } catch(e){}
+
+      // Save on input
+      ta.addEventListener('input', () => {
+        try { localStorage.setItem(key, ta.value); } catch(e){}
+      });
+    });
+
+    document.getElementById('collapseAll').addEventListener('click', () => {
+      rooms.forEach(r => r.open = false);
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    document.getElementById('expandFirst').addEventListener('click', () => {
+      rooms.forEach(r => r.open = (r.getAttribute('data-room') === 'bathroom'));
+      document.querySelector('details.room[data-room="bathroom"]').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+
+    document.getElementById('wipeNotes').addEventListener('click', () => {
+      if (!confirm('Clear all saved notes on this device/browser?')) return;
+      rooms.forEach(room => {
+        const roomId = room.getAttribute('data-room');
+        const key = KEY_PREFIX + roomId;
+        try { localStorage.removeItem(key); } catch(e){}
+        const ta = room.querySelector('textarea');
+        ta.value = '';
+      });
+      alert('Cleared.');
+    });
+  </script>
+</body>
+</html>
